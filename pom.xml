@@ -4,6 +4,7 @@
 	<artifactId>hypertunnel</artifactId>
 	<version>1.0.0-SNAPSHOT</version>
 	<name>hypertunnel</name>
+	<description>A bidirectional HTTP, IP, file, and clipboard tunnel, if outgoing HTTP is all you are permitted to.</description>
 
 	<dependencies>
 		<dependency>
