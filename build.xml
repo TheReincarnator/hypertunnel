@@ -1,0 +1,55 @@
+<?xml version="1.0" encoding="UTF-8"?>
+
+<project name="hypertunnel" default="build" basedir=".">
+
+	<!-- Global definitions -->
+
+	<property environment="env"/>
+
+	<!-- OS conditions -->
+	
+	<condition property="mavenExecutable" value="mvn.bat">
+		<os family="windows" />
+	</condition>
+	
+	<condition property="mavenExecutable" value="mvn">
+		<os family="unix" />
+	</condition>
+	
+	<!-- Targets -->
+	
+	<target name="build" description="Builds the entire EAR for Tomcat">
+		<exec executable="${mavenExecutable}" failonerror="true">
+			<arg value="package"/>
+			<arg value="-e"/>
+		</exec>
+	</target>
+
+	<target name="clean-build" description="Cleans the temporary build and dist folders">
+		<exec executable="${mavenExecutable}" failonerror="true">
+			<arg value="clean"/>
+			<arg value="package"/>
+			<arg value="-e"/>
+		</exec>
+	</target>
+
+	<target name="eclipse" description="Update project files for Eclipse if you don't use m2e">
+		<exec executable="${mavenExecutable}" failonerror="true">
+			<arg value="eclipse:eclipse"/>
+			<arg value="-DdownloadSources=true"/>
+			<arg value="-DdownloadJavadocs=true"/>
+			<arg value="-e"/>
+		</exec>
+	</target>
+
+	<target name="set-version" description="Changes the project version in all artifacts">
+		<input message="Enter new version (e.g. 1.2.3-SNAPSHOT)" addproperty="newVersion"/>
+		<exec executable="${mavenExecutable}" failonerror="true">
+			<arg value="versions:set"/>
+			<arg value="versions:commit"/>
+			<arg value="-DnewVersion=${newVersion}"/>
+			<arg value="-e"/>
+		</exec>
+	</target>
+
+</project>
