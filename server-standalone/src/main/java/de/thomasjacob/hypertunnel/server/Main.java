@@ -4,6 +4,7 @@ import org.apache.commons.cli.CommandLine;
 import org.apache.commons.cli.DefaultParser;
 import org.apache.commons.cli.Options;
 import org.apache.commons.cli.ParseException;
+import org.eclipse.jetty.server.Server;
 
 /**
  * @author Thomas
@@ -14,10 +15,19 @@ public class Main {
 		CommandLine commandLine = new DefaultParser().parse(options, args);
 		args = commandLine.getArgs();
 
-		String type = args.length > 0 ? args[1] : "";
 		if (args.length == 1) {
 			int port = Integer.parseInt(args[0]);
-			new HyperTunnelServer(port).run();
+			HyperTunnelServer hyperTunnelServer = new HyperTunnelServer();
+
+			Server server = new Server(port);
+			server.setHandler(new HyperTunnelHandler(hyperTunnelServer));
+
+			try {
+				server.start();
+				server.join();
+			} catch (Exception exception) {
+				throw new RuntimeException("Failed to start hypertunnel server", exception);
+			}
 		}
 	}
 }

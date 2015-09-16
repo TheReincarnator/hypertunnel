@@ -10,12 +10,20 @@
 	<artifactId>server-war</artifactId>
 	<name>Server WAR</name>
 	<description>Servlet-based server (WAR) for hypertunnel: A bidirectional HTTP, IP, file, and clipboard tunnel, if outgoing HTTP is all you are permitted to.</description>
+	
+	<packaging>war</packaging>
 
 	<dependencies>
 		<dependency>
 			<groupId>de.thomasjacob.hypertunnel</groupId>
 			<artifactId>server-core</artifactId>
 		</dependency>
+
+      <dependency>
+         <groupId>javax.servlet</groupId>
+         <artifactId>javax.servlet-api</artifactId>
+         <scope>provided</scope>
+      </dependency>
 
 		<dependency>
 			<groupId>org.apache.commons</groupId>
@@ -32,5 +40,9 @@
 			<artifactId>commons-lang3</artifactId>
 		</dependency>
 	</dependencies>
+	
+	<build>
+		<finalName>hypertunnel-server</finalName>
+	</build>
 	
 </project>

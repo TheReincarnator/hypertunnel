@@ -12,6 +12,12 @@
 	<description>Common server core for both the servlet-based and the standalone hypertunnel server.</description>
 
 	<dependencies>
+      <dependency>
+         <groupId>javax.servlet</groupId>
+         <artifactId>javax.servlet-api</artifactId>
+         <scope>provided</scope>
+      </dependency>
+
 		<dependency>
 			<groupId>org.apache.commons</groupId>
 			<artifactId>commons-collections4</artifactId>

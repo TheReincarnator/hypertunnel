@@ -8,7 +8,7 @@ public class HttpDelegate extends Delegate {
 	public static final String CATEGORY = "http";
 
 	@Override
-	public void execute(String payload) {
+	public void execute(String sourceClient, String payload) {
 	}
 
 	@Override

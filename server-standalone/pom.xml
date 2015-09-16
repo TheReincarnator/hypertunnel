@@ -13,6 +13,11 @@
 
 	<dependencies>
 		<dependency>
+			<groupId>com.google.code.gson</groupId>
+			<artifactId>gson</artifactId>
+		</dependency>
+
+		<dependency>
 			<groupId>de.thomasjacob.hypertunnel</groupId>
 			<artifactId>server-core</artifactId>
 		</dependency>

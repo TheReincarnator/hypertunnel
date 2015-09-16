@@ -20,7 +20,7 @@
 	
 	<target name="build" description="Builds the entire EAR for Tomcat">
 		<exec executable="${mavenExecutable}" failonerror="true">
-			<arg value="package"/>
+			<arg value="install"/>
 			<arg value="-e"/>
 		</exec>
 	</target>
@@ -28,8 +28,7 @@
 	<target name="clean-build" description="Cleans the temporary build and dist folders">
 		<exec executable="${mavenExecutable}" failonerror="true">
 			<arg value="clean"/>
-			<arg value="package"/>
-			<arg value="-e"/>
+			<arg value="install"/>
 		</exec>
 	</target>
 

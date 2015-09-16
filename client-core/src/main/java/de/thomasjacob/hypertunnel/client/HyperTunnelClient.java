@@ -84,6 +84,7 @@ public class HyperTunnelClient implements Runnable {
 		try {
 			BasicHttpParams params = new BasicHttpParams();
 			params.setParameter("action", "receive");
+			params.setParameter("client", id);
 
 			HttpRequestBase requestMethod = new HttpPost(serverUrl);
 			requestMethod.setParams(params);
@@ -110,14 +111,22 @@ public class HyperTunnelClient implements Runnable {
 				return null;
 			}
 
-			int separatorPos = responseData.indexOf(":");
-			if (separatorPos < 0) {
-				throw new IOException("Failed to parse data from hypertunnel server: No category line");
+			int separatorPos1 = responseData.indexOf(":");
+			if (separatorPos1 < 0) {
+				throw new IOException(
+					"Failed to parse data from hypertunnel server: Wrong format, should be id:category:payload");
+			}
+
+			int separatorPos2 = responseData.indexOf(":", separatorPos1 + 1);
+			if (separatorPos2 < 0) {
+				throw new IOException(
+					"Failed to parse data from hypertunnel server: Wrong format, should be id:category:payload");
 			}
 
 			Message message = new Message();
-			message.category = responseData.substring(0, separatorPos);
-			message.payload = responseData.substring(separatorPos + 1);
+			message.sourceClient = responseData.substring(0, separatorPos1);
+			message.category = responseData.substring(separatorPos1 + 1, separatorPos2);
+			message.payload = responseData.substring(separatorPos2 + 1);
 
 			return message;
 		} catch (Exception exception) {
@@ -167,7 +176,7 @@ public class HyperTunnelClient implements Runnable {
 
 			Delegate delegate = delegates.get(message.category);
 			if (delegate != null) {
-				delegate.execute(message.payload);
+				delegate.execute(message.sourceClient, message.payload);
 			}
 		}
 
@@ -244,5 +253,6 @@ public class HyperTunnelClient implements Runnable {
 	private static class Message {
 		private String category;
 		private String payload;
+		private String sourceClient;
 	}
 }
