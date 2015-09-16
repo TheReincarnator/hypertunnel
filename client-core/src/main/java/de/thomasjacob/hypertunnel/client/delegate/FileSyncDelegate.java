@@ -8,7 +8,7 @@ public class FileSyncDelegate extends Delegate {
 	public static final String CATEGORY = "file";
 
 	@Override
-	public void execute(String sourceClient, String payload) {
+	public void execute(String sourceClient, byte[] payload) {
 	}
 
 	@Override

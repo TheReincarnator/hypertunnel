@@ -1,4 +1,6 @@
-package de.thomasjacob.hypertunnel.client.tunnel;
+package de.thomasjacob.hypertunnel.client.tunnel.http;
+
+import de.thomasjacob.hypertunnel.client.tunnel.Tunnel;
 
 /**
  * @author thomas

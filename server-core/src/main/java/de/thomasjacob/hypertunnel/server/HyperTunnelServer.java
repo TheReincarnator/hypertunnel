@@ -5,6 +5,7 @@ import java.io.IOException;
 import javax.servlet.http.HttpServletRequest;
 import javax.servlet.http.HttpServletResponse;
 
+import org.apache.commons.codec.binary.Base64;
 import org.apache.commons.lang3.StringUtils;
 
 /**
@@ -39,8 +40,14 @@ public class HyperTunnelServer {
 			}
 
 			if (message != null) {
-				sendTextResponse(response,
-					message.getSourceClient() + ":" + message.getCategory() + ":" + message.getPayload());
+				byte[] prefix = (message.getSourceClient() + ":" + message.getCategory() + ":").getBytes("UTF-8");
+
+				response.setStatus(HttpServletResponse.SC_OK);
+				response.setContentLength(prefix.length + message.getPayload().length);
+				response.setContentType("application/unknown");
+				response.getOutputStream().write(prefix);
+				response.getOutputStream().write(message.getPayload());
+				response.getOutputStream().flush();
 				return;
 			}
 
@@ -59,7 +66,8 @@ public class HyperTunnelServer {
 
 		String sourceClient = StringUtils.defaultString(request.getParameter("sourceClient"));
 		String category = StringUtils.defaultString(request.getParameter("category"));
-		String payload = StringUtils.defaultString(request.getParameter("payload"));
+		String payloadString = StringUtils.defaultString(request.getParameter("payload"));
+		byte[] payload = Base64.decodeBase64(payloadString);
 		Message message = new Message(sourceClient, category, payload);
 
 		synchronized (pendingMessages) {
@@ -69,11 +77,7 @@ public class HyperTunnelServer {
 	}
 
 	public void handleWelcome(HttpServletRequest request, HttpServletResponse response) throws IOException {
-		sendTextResponse(response, "Hello world");
-	}
-
-	public void sendTextResponse(HttpServletResponse response, String text) throws IOException {
-		byte[] bytes = text.getBytes("UTF-8");
+		byte[] bytes = "Hello world".getBytes("UTF-8");
 
 		response.setStatus(HttpServletResponse.SC_OK);
 		response.setContentLength(bytes.length);

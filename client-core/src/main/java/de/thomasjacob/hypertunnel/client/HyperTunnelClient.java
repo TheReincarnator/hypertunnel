@@ -4,12 +4,14 @@ import de.thomasjacob.hypertunnel.client.delegate.Delegate;
 import de.thomasjacob.hypertunnel.client.tunnel.Tunnel;
 
 import java.io.IOException;
+import java.io.UnsupportedEncodingException;
 import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 
-import org.apache.commons.lang3.StringUtils;
+import org.apache.commons.codec.binary.Base64;
+import org.apache.commons.lang3.ArrayUtils;
 import org.apache.http.HttpResponse;
 import org.apache.http.client.methods.HttpPost;
 import org.apache.http.client.methods.HttpRequestBase;
@@ -100,33 +102,33 @@ public class HyperTunnelClient implements Runnable {
 					+ response.getStatusLine().getStatusCode());
 			}
 
-			String responseData;
+			byte[] responseData;
 			try {
-				responseData = EntityUtils.toString(response.getEntity());
+				responseData = EntityUtils.toByteArray(response.getEntity());
 			} catch (Exception exception) {
 				throw new IOException("Failed to parse data from hypertunnel server: " + exception.getMessage());
 			}
 
-			if (StringUtils.isBlank(responseData)) {
+			if (responseData == null || responseData.length <= 2) {
 				return null;
 			}
 
-			int separatorPos1 = responseData.indexOf(":");
+			int separatorPos1 = ArrayUtils.indexOf(responseData, (byte) ':');
 			if (separatorPos1 < 0) {
 				throw new IOException(
 					"Failed to parse data from hypertunnel server: Wrong format, should be id:category:payload");
 			}
 
-			int separatorPos2 = responseData.indexOf(":", separatorPos1 + 1);
+			int separatorPos2 = ArrayUtils.indexOf(responseData, (byte) ':', separatorPos1 + 1);
 			if (separatorPos2 < 0) {
 				throw new IOException(
 					"Failed to parse data from hypertunnel server: Wrong format, should be id:category:payload");
 			}
 
 			Message message = new Message();
-			message.sourceClient = responseData.substring(0, separatorPos1);
-			message.category = responseData.substring(separatorPos1 + 1, separatorPos2);
-			message.payload = responseData.substring(separatorPos2 + 1);
+			message.sourceClient = new String(responseData, 0, separatorPos1, "UTF-8");
+			message.category = new String(responseData, separatorPos1 + 1, separatorPos2 - separatorPos1 - 1, "UTF-8");
+			message.payload = ArrayUtils.subarray(responseData, separatorPos2 + 1, responseData.length);
 
 			return message;
 		} catch (Exception exception) {
@@ -185,7 +187,7 @@ public class HyperTunnelClient implements Runnable {
 		}
 	}
 
-	public void sendMessage(String targetClient, String category, String payload) {
+	public void sendMessage(String targetClient, String category, byte[] payload) {
 		synchronized (this) {
 			if (!running) {
 				// We are currently shutting down, ignore all further send requests
@@ -199,7 +201,7 @@ public class HyperTunnelClient implements Runnable {
 			params.setParameter("sourceClient", id);
 			params.setParameter("targetClient", targetClient);
 			params.setParameter("category", category);
-			params.setParameter("payload", payload);
+			params.setParameter("payload", Base64.encodeBase64String(payload));
 
 			HttpRequestBase requestMethod = new HttpPost(serverUrl);
 			HttpResponse response;
@@ -216,6 +218,17 @@ public class HyperTunnelClient implements Runnable {
 		} catch (Exception exception) {
 			exception.printStackTrace(System.err);
 		}
+	}
+
+	public void sendMessage(String targetClient, String category, String payloadString) {
+		byte[] payload;
+		try {
+			payload = payloadString.getBytes("UTF-8");
+		} catch (UnsupportedEncodingException exception) {
+			throw new IllegalStateException("Cannot encode payload", exception);
+		}
+
+		sendMessage(targetClient, category, payload);
 	}
 
 	/**
@@ -252,7 +265,7 @@ public class HyperTunnelClient implements Runnable {
 
 	private static class Message {
 		private String category;
-		private String payload;
+		private byte[] payload;
 		private String sourceClient;
 	}
 }

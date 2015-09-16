@@ -14,8 +14,9 @@ public class ClipboardSyncDelegate extends Delegate implements ClipboardOwner {
 	public static final String CATEGORY = "clipboard";
 
 	@Override
-	public void execute(String sourceClient, String payload) {
-		Toolkit.getDefaultToolkit().getSystemClipboard().setContents(new StringSelection(payload), this);
+	public void execute(String sourceClient, byte[] payload) {
+		String payloadString = decodePayload(payload);
+		Toolkit.getDefaultToolkit().getSystemClipboard().setContents(new StringSelection(payloadString), this);
 	}
 
 	@Override

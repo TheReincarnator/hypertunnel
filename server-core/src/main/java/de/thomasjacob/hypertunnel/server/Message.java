@@ -4,7 +4,7 @@ public class Message {
 	private String category;
 
 	private long creationTime = System.currentTimeMillis();
-	private String payload;
+	private byte[] payload;
 	private String sourceClient;
 
 	/**
@@ -14,7 +14,7 @@ public class Message {
 	 * @param category
 	 * @param payload
 	 */
-	public Message(String sourceClient, String category, String payload) {
+	public Message(String sourceClient, String category, byte[] payload) {
 		this.sourceClient = sourceClient;
 		this.category = category;
 		this.payload = payload;
@@ -43,7 +43,7 @@ public class Message {
 	 *
 	 * @return The payload.
 	 */
-	public String getPayload() {
+	public byte[] getPayload() {
 		return payload;
 	}
 
