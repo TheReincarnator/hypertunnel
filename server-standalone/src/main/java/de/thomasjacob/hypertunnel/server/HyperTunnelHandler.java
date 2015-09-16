@@ -34,6 +34,8 @@ public class HyperTunnelHandler extends AbstractHandler {
 				server.handleSend(request, response);
 			} else if (StringUtils.equalsIgnoreCase(action, "receive")) {
 				server.handleReceive(request, response);
+			} else {
+				response.setStatus(HttpServletResponse.SC_BAD_REQUEST);
 			}
 		} else {
 			response.setStatus(HttpServletResponse.SC_METHOD_NOT_ALLOWED);

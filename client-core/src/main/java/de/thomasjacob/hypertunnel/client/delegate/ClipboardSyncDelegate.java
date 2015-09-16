@@ -16,6 +16,7 @@ public class ClipboardSyncDelegate extends Delegate implements ClipboardOwner {
 	@Override
 	public void execute(String sourceClient, byte[] payload) {
 		String payloadString = decodePayload(payload);
+		System.out.println("Setting clipboard to '" + payloadString + "'");
 		Toolkit.getDefaultToolkit().getSystemClipboard().setContents(new StringSelection(payloadString), this);
 	}
 

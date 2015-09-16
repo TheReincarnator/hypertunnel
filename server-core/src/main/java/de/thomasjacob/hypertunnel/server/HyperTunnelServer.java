@@ -1,6 +1,7 @@
 package de.thomasjacob.hypertunnel.server;
 
 import java.io.IOException;
+import java.io.UnsupportedEncodingException;
 
 import javax.servlet.http.HttpServletRequest;
 import javax.servlet.http.HttpServletResponse;
@@ -27,6 +28,7 @@ public class HyperTunnelServer {
 
 	public void handleReceive(HttpServletRequest request, HttpServletResponse response) throws IOException {
 		String client = StringUtils.defaultString(request.getParameter("client"));
+		System.out.println("Processing receive request for " + client);
 
 		long maxTime = System.currentTimeMillis() + maxPollTime;
 		while (System.currentTimeMillis() < maxTime) {
@@ -41,6 +43,8 @@ public class HyperTunnelServer {
 
 			if (message != null) {
 				byte[] prefix = (message.getSourceClient() + ":" + message.getCategory() + ":").getBytes("UTF-8");
+				System.out.println("Sending response for " + client + ": " + message.getSourceClient() + ":"
+					+ message.getCategory());
 
 				response.setStatus(HttpServletResponse.SC_OK);
 				response.setContentLength(prefix.length + message.getPayload().length);
@@ -59,9 +63,12 @@ public class HyperTunnelServer {
 				}
 			}
 		}
+
+		System.out.println("No message for " + client);
+		sendText(response, "OK");
 	}
 
-	public void handleSend(HttpServletRequest request, HttpServletResponse response) {
+	public void handleSend(HttpServletRequest request, HttpServletResponse response) throws IOException {
 		String targetClient = StringUtils.defaultString(request.getParameter("targetClient"));
 
 		String sourceClient = StringUtils.defaultString(request.getParameter("sourceClient"));
@@ -70,14 +77,22 @@ public class HyperTunnelServer {
 		byte[] payload = Base64.decodeBase64(payloadString);
 		Message message = new Message(sourceClient, category, payload);
 
+		System.out.println("Processing send request " + sourceClient + ":" + targetClient + ":" + category);
+
 		synchronized (pendingMessages) {
 			pendingMessages.add(targetClient, message);
 			pendingMessages.notifyAll();
 		}
+
+		sendText(response, "OK");
 	}
 
 	public void handleWelcome(HttpServletRequest request, HttpServletResponse response) throws IOException {
-		byte[] bytes = "Hello world".getBytes("UTF-8");
+		sendText(response, "Hello world");
+	}
+
+	private void sendText(HttpServletResponse response, String text) throws UnsupportedEncodingException, IOException {
+		byte[] bytes = text.getBytes("UTF-8");
 
 		response.setStatus(HttpServletResponse.SC_OK);
 		response.setContentLength(bytes.length);

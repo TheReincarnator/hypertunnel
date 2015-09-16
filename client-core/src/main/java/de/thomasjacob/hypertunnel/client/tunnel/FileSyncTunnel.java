@@ -8,6 +8,16 @@ public class FileSyncTunnel extends Tunnel {
 	private String sourceFolderPath;
 	private String targetFolderPath;
 
+	public FileSyncTunnel(String[] parameters) {
+		if (parameters.length != 3) {
+			throw new IllegalArgumentException("File sync tunnels require 3 parameters (source-path:client:target-path)");
+		}
+
+		sourceFolderPath = parameters[0];
+		setTargetClient(parameters[1]);
+		targetFolderPath = parameters[2];
+	}
+
 	/**
 	 * Returns the sourceFolderPath.
 	 *

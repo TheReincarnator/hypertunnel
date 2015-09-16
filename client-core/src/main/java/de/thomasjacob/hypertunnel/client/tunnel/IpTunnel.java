@@ -6,7 +6,20 @@ package de.thomasjacob.hypertunnel.client.tunnel;
 public class IpTunnel extends Tunnel {
 
 	private int sourcePort;
+	private String targetHost;
 	private int targetPort;
+
+	public IpTunnel(String[] parameters) {
+		if (parameters.length != 4) {
+			throw new IllegalArgumentException(
+				"IP tunnels require 4 parameters (source-port:client:target-host:target-port)");
+		}
+
+		sourcePort = Integer.parseInt(parameters[0]);
+		setTargetClient(parameters[1]);
+		targetHost = parameters[2];
+		targetPort = Integer.parseInt(parameters[3]);
+	}
 
 	/**
 	 * Returns the sourcePort.
@@ -15,6 +28,15 @@ public class IpTunnel extends Tunnel {
 	 */
 	public int getSourcePort() {
 		return sourcePort;
+	}
+
+	/**
+	 * Returns the targetHost.
+	 *
+	 * @return The targetHost.
+	 */
+	public String getTargetHost() {
+		return targetHost;
 	}
 
 	/**
@@ -33,6 +55,15 @@ public class IpTunnel extends Tunnel {
 	 */
 	public void setSourcePort(int sourcePort) {
 		this.sourcePort = sourcePort;
+	}
+
+	/**
+	 * Sets the targetHost.
+	 *
+	 * @param targetHost The targetHost.
+	 */
+	public void setTargetHost(String targetHost) {
+		this.targetHost = targetHost;
 	}
 
 	/**

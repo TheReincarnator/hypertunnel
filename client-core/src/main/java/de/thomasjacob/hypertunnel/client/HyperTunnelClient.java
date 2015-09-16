@@ -12,11 +12,13 @@ import java.util.Map;
 
 import org.apache.commons.codec.binary.Base64;
 import org.apache.commons.lang3.ArrayUtils;
+import org.apache.http.Consts;
 import org.apache.http.HttpResponse;
+import org.apache.http.NameValuePair;
+import org.apache.http.client.entity.UrlEncodedFormEntity;
 import org.apache.http.client.methods.HttpPost;
-import org.apache.http.client.methods.HttpRequestBase;
 import org.apache.http.impl.client.SystemDefaultHttpClient;
-import org.apache.http.params.BasicHttpParams;
+import org.apache.http.message.BasicNameValuePair;
 import org.apache.http.util.EntityUtils;
 
 /**
@@ -84,15 +86,18 @@ public class HyperTunnelClient implements Runnable {
 
 	private Message receiveMessage() {
 		try {
-			BasicHttpParams params = new BasicHttpParams();
-			params.setParameter("action", "receive");
-			params.setParameter("client", id);
+			System.out.println("Requesting incoming message...");
 
-			HttpRequestBase requestMethod = new HttpPost(serverUrl);
-			requestMethod.setParams(params);
+			List<NameValuePair> parameters = new ArrayList<NameValuePair>();
+			parameters.add(new BasicNameValuePair("action", "receive"));
+			parameters.add(new BasicNameValuePair("client", id));
+
+			HttpPost httpPost = new HttpPost(serverUrl);
+			httpPost.setEntity(new UrlEncodedFormEntity(parameters, Consts.UTF_8));
+
 			HttpResponse response;
 			try {
-				response = new SystemDefaultHttpClient().execute(requestMethod);
+				response = new SystemDefaultHttpClient().execute(httpPost);
 			} catch (Exception exception) {
 				throw new IOException("Failed to connect to hypertunnel server: " + exception.getMessage(), exception);
 			}
@@ -110,6 +115,12 @@ public class HyperTunnelClient implements Runnable {
 			}
 
 			if (responseData == null || responseData.length <= 2) {
+				System.out.println("No message.");
+				try {
+					Thread.sleep(300);
+				} catch (InterruptedException exception1) {
+					// Ignored
+				}
 				return null;
 			}
 
@@ -129,10 +140,16 @@ public class HyperTunnelClient implements Runnable {
 			message.sourceClient = new String(responseData, 0, separatorPos1, "UTF-8");
 			message.category = new String(responseData, separatorPos1 + 1, separatorPos2 - separatorPos1 - 1, "UTF-8");
 			message.payload = ArrayUtils.subarray(responseData, separatorPos2 + 1, responseData.length);
+			System.out.println("Got message " + message.sourceClient + ":" + message.category);
 
 			return message;
 		} catch (Exception exception) {
 			exception.printStackTrace(System.err);
+			try {
+				Thread.sleep(2000);
+			} catch (InterruptedException exception1) {
+				// Ignored
+			}
 			return null;
 		}
 	}
@@ -158,19 +175,27 @@ public class HyperTunnelClient implements Runnable {
 	}
 
 	@Override
-	public synchronized void run() {
-		if (!running) {
-			return;
-		}
+	public void run() {
+		synchronized (this) {
+			if (running) {
+				return;
+			}
 
-		running = true;
+			running = true;
+		}
 
 		for (Tunnel tunnel : tunnels) {
 			tunnel.setSourceClient(this);
 			tunnel.start();
 		}
 
-		while (running) {
+		while (true) {
+			synchronized (this) {
+				if (!running) {
+					break;
+				}
+			}
+
 			Message message = receiveMessage();
 			if (message == null) {
 				continue;
@@ -196,17 +221,19 @@ public class HyperTunnelClient implements Runnable {
 		}
 
 		try {
-			BasicHttpParams params = new BasicHttpParams();
-			params.setParameter("action", "send");
-			params.setParameter("sourceClient", id);
-			params.setParameter("targetClient", targetClient);
-			params.setParameter("category", category);
-			params.setParameter("payload", Base64.encodeBase64String(payload));
+			List<NameValuePair> parameters = new ArrayList<NameValuePair>();
+			parameters.add(new BasicNameValuePair("action", "send"));
+			parameters.add(new BasicNameValuePair("sourceClient", id));
+			parameters.add(new BasicNameValuePair("targetClient", targetClient));
+			parameters.add(new BasicNameValuePair("category", category));
+			parameters.add(new BasicNameValuePair("payload", Base64.encodeBase64String(payload)));
 
-			HttpRequestBase requestMethod = new HttpPost(serverUrl);
+			HttpPost httpPost = new HttpPost(serverUrl);
+			httpPost.setEntity(new UrlEncodedFormEntity(parameters, Consts.UTF_8));
+
 			HttpResponse response;
 			try {
-				response = new SystemDefaultHttpClient().execute(requestMethod);
+				response = new SystemDefaultHttpClient().execute(httpPost);
 			} catch (Exception exception) {
 				throw new IOException("Failed to connect to hypertunnel server: " + exception.getMessage(), exception);
 			}

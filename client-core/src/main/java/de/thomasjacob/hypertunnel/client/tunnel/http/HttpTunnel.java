@@ -9,6 +9,15 @@ public class HttpTunnel extends Tunnel {
 
 	private int sourcePort;
 
+	public HttpTunnel(String[] parameters) {
+		if (parameters.length != 2) {
+			throw new IllegalArgumentException("HTTP tunnels require 2 parameters (source-port:client)");
+		}
+
+		sourcePort = Integer.parseInt(parameters[0]);
+		setTargetClient(parameters[1]);
+	}
+
 	/**
 	 * Returns the sourcePort.
 	 *

@@ -16,7 +16,13 @@ public class ClipboardSyncTunnel extends Tunnel {
 	private int period = 250;
 	private WorkerThread workerThread;
 
-	public ClipboardSyncTunnel() {
+	public ClipboardSyncTunnel(String[] parameters) {
+		if (parameters.length != 1) {
+			throw new IllegalArgumentException("Clipboard tunnels require the target client as parameter");
+		}
+
+		setTargetClient(parameters[0]);
+
 		checkClipboard();
 	}
 
@@ -27,7 +33,12 @@ public class ClipboardSyncTunnel extends Tunnel {
 		}
 
 		boolean changed = !currentContent.equals(lastContent);
+		if (changed) {
+			System.out.println("Clipboard changed");
+		}
+
 		lastContent = currentContent;
+
 		return changed;
 	}
 
@@ -81,6 +92,7 @@ public class ClipboardSyncTunnel extends Tunnel {
 		}
 
 		workerThread.shutdown();
+		workerThread = null;
 	}
 
 	public void synchronizeClipboard(boolean force) {
@@ -91,7 +103,7 @@ public class ClipboardSyncTunnel extends Tunnel {
 	}
 
 	private class WorkerThread extends Thread {
-		private boolean running;
+		private boolean running = true;
 
 		@Override
 		public synchronized void run() {
